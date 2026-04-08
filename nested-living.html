@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nested Living — Interactive Illustration</title>
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300;1,500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root[data-theme=light]{
+  --sky-a:#9CCAE0;--sky-b:#D8BC78;
+  --bar:rgba(250,246,238,0.93);
+  --panel:rgba(252,248,240,0.97);
+  --border:rgba(140,100,55,0.18);
+  --ta:#2A1808;--tb:#6A4828;
+  --panel-accent:#3A7060;
+  --ring-r:#2E8090;--ring-c:#266878;--ring-f:#1E5060;
+  --lbl-col:#2A1808;
+}
+:root[data-theme=dark]{
+  --sky-a:#030910;--sky-b:#101E38;
+  --bar:rgba(4,10,22,0.93);
+  --panel:rgba(5,12,25,0.97);
+  --border:rgba(0,215,195,0.18);
+  --ta:#C8E8D0;--tb:#80A898;
+  --panel-accent:#00D8C0;
+  --ring-r:#00D8C0;--ring-c:#00C0B0;--ring-f:#00A898;
+  --lbl-col:#C8E8D0;
+}
+
+body{
+  font-family:'Cormorant Garamond',serif;
+  background:var(--sky-a);color:var(--ta);
+  height:100vh;overflow:hidden;
+  transition:background 0.55s,color 0.4s;
+}
+
+/* TOP BAR */
+#bar{
+  position:fixed;top:0;left:0;right:0;height:56px;
+  background:var(--bar);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 18px;gap:12px;z-index:100;
+  transition:background 0.5s,border-color 0.5s;
+}
+#btitle{
+  font-family:'Syncopate',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:0.18em;color:var(--ta);white-space:nowrap;flex-shrink:0;
+}
+#bsub{
+  font-size:11px;color:var(--tb);font-style:italic;
+  white-space:nowrap;flex-shrink:0;
+}
+.bsep{width:1px;height:22px;background:var(--border);flex-shrink:0}
+#blayers{display:flex;gap:5px;flex:1;flex-wrap:wrap;align-items:center}
+.lb{
+  font-family:'Syncopate',sans-serif;font-size:8px;letter-spacing:0.08em;
+  padding:4px 10px;border-radius:20px;border:1px solid var(--border);
+  cursor:pointer;background:transparent;color:var(--tb);
+  transition:all 0.22s;white-space:nowrap;
+}
+.lb.on{border-color:transparent}
+.lb[data-l=solar].on{background:#9E6C08;color:#FFF0C0}
+.lb[data-l=water].on{background:#146898;color:#C8EAF8}
+.lb[data-l=nutrients].on{background:#286210;color:#C8EEC0}
+.lb[data-l=food].on{background:#984810;color:#FFE4C8}
+.lb[data-l=transport].on{background:#362298;color:#D4CEF5}
+.lb[data-l=people].on{background:#8A2068;color:#F8D0E8}
+#tbn{
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
+  background:transparent;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.4s;flex-shrink:0;color:var(--ta);
+}
+#tbn:hover{transform:rotate(25deg)}
+
+/* CANVAS */
+#wrap{position:fixed;top:56px;left:0;right:0;bottom:0}
+#sv{width:100%;height:100%}
+
+/* INFO PANEL — landscape, docked at bottom */
+#panel{
+  position:fixed;left:14px;right:14px;bottom:-340px;
+  height:238px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:22px 28px;
+  transition:bottom 0.42s cubic-bezier(0.34,1.5,0.64,1);
+  z-index:200;backdrop-filter:blur(22px);
+  display:grid;grid-template-columns:260px 1fr 300px;gap:28px;
+  overflow:hidden;
+}
+#panel.open{bottom:14px}
+#pclose{
+  position:absolute;top:10px;right:10px;width:26px;height:26px;
+  border-radius:50%;border:1px solid var(--border);
+  background:none;cursor:pointer;color:var(--tb);
+  font-size:13px;display:flex;align-items:center;justify-content:center;z-index:2;
+}
+.pcol{min-width:0;overflow:hidden}
+.pcol-head{border-right:1px solid var(--border);padding-right:24px}
+.pcol-metrics{border-left:1px solid var(--border);padding-left:24px;overflow-y:auto}
+#pico{font-size:36px;margin-bottom:8px;line-height:1}
+#ptit{
+  font-family:'Syncopate',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:0.16em;color:var(--ta);margin-bottom:6px;
+}
+#psub{font-size:12px;color:var(--tb);font-style:italic;line-height:1.55}
+#pbod{font-size:13px;line-height:1.72;color:var(--ta);overflow-y:auto;max-height:100%;padding-right:6px}
+#pbod p{margin-bottom:8px}
+.pm{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--border);font-size:11.5px;
+}
+.pm:last-child{border-bottom:none}
+.pml{color:var(--tb)}
+.pmv{font-family:'Syncopate',sans-serif;font-size:8.5px;letter-spacing:0.06em;color:var(--panel-accent);text-align:right}
+
+/* SCALE PANEL */
+#scalepanel{
+  position:fixed;right:14px;top:68px;width:192px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:15px 18px;
+  backdrop-filter:blur(20px);z-index:99;
+  transition:all 0.4s;pointer-events:none;
+}
+#scalepanel.hidden{opacity:0;transform:translateY(-12px);pointer-events:none}
+.sph{font-family:'Syncopate',sans-serif;font-size:8px;letter-spacing:0.15em;color:var(--tb);margin-bottom:12px}
+.spi{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.spr{flex-shrink:0;border-radius:50%;border:1.5px solid}
+.spr.lg{width:22px;height:22px;border-color:var(--ring-r)}
+.spr.md{width:15px;height:15px;border-color:var(--ring-c);margin-top:3px}
+.spr.sm{width:10px;height:10px;border-color:var(--ring-f);margin-top:5px}
+.spd{width:1px;height:10px;background:var(--border);margin-left:10px;margin-bottom:6px}
+.spl{font-family:'Syncopate',sans-serif;font-size:7.5px;letter-spacing:0.09em;color:var(--lbl-col)}
+.sps{font-size:10px;font-style:italic;color:var(--tb);line-height:1.4}
+.spq{font-size:10.5px;font-style:italic;color:var(--panel-accent);line-height:1.55;margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
+.spa{font-family:'Syncopate',sans-serif;font-size:7px;letter-spacing:0.1em;color:var(--tb);margin-top:2px}
+
+/* LEGEND */
+#legend{
+  position:fixed;bottom:16px;left:14px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:11px 15px;backdrop-filter:blur(18px);z-index:100;
+  transition:background 0.5s,border-color 0.5s;
+}
+.lh{font-family:'Syncopate',sans-serif;font-size:7px;letter-spacing:0.15em;color:var(--tb);margin-bottom:7px}
+.li{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;color:var(--ta)}
+.li:last-child{margin-bottom:0}
+.ll{width:20px;height:2px;border-radius:2px}
+
+/* ANIMATIONS */
+@keyframes dash-f{to{stroke-dashoffset:-32}}
+@keyframes dash-r{to{stroke-dashoffset:32}}
+.fsolar{animation:dash-f 1.1s linear infinite}
+.fwater{animation:dash-f 1.7s linear infinite}
+.fnutri{animation:dash-r 2.1s linear infinite}
+.ffood{animation:dash-f 1.35s linear infinite}
+.ftrans{animation:dash-f 0.82s linear infinite}
+
+.hot{cursor:pointer;transition:filter 0.18s}
+.hot:hover{filter:brightness(1.28)}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <div id="btitle">NESTED LIVING</div>
+  <div id="bsub">A Buckminster Fuller Vision of Biological–Geographical Sustainability</div>
+  <div class="bsep"></div>
+  <div id="blayers">
+    <button class="lb on" data-l="solar">☀ SOLAR</button>
+    <button class="lb on" data-l="water">💧 RAINWATER</button>
+    <button class="lb on" data-l="nutrients">🌱 NUTRIENTS</button>
+    <button class="lb on" data-l="food">🌿 FOOD</button>
+    <button class="lb on" data-l="transport">🚲 TRANSPORT</button>
+    <button class="lb on" data-l="people">🚶 PEOPLE</button>
+  </div>
+  <button id="tbn">🌙</button>
+</div>
+
+<div id="wrap">
+  <svg id="sv" viewBox="0 0 1400 780" preserveAspectRatio="xMidYMid meet"></svg>
+</div>
+
+<div id="panel">
+  <button id="pclose">×</button>
+  <div class="pcol pcol-head">
+    <div id="pico"></div>
+    <div id="ptit"></div>
+    <div id="psub"></div>
+  </div>
+  <div class="pcol pcol-body">
+    <div id="pbod"></div>
+  </div>
+  <div class="pcol pcol-metrics">
+    <div id="pmets"></div>
+  </div>
+</div>
+
+<div id="scalepanel">
+  <div class="sph">NESTED SCALES</div>
+  <div class="spi"><div class="spr lg"></div><div><div class="spl">REGIONAL DOME</div><div class="sps">5,000–50,000 people</div></div></div>
+  <div class="spd"></div>
+  <div class="spi"><div class="spr md"></div><div><div class="spl">COMMUNITY DOME</div><div class="sps">200–800 people</div></div></div>
+  <div class="spd"></div>
+  <div class="spi"><div class="spr sm"></div><div><div class="spl">FAMILY DOME</div><div class="sps">4–8 people</div></div></div>
+  <div class="spq">"Do more with less until you can do everything with nothing."</div>
+  <div class="spa">— BUCKMINSTER FULLER</div>
+</div>
+
+<div id="legend">
+  <div class="lh">BIOLOGICAL FLOWS</div>
+  <div class="li"><div class="ll" style="background:#B87E0A"></div>Solar Energy</div>
+  <div class="li"><div class="ll" style="background:#1470A0"></div>Rainwater</div>
+  <div class="li"><div class="ll" style="background:#287A14"></div>Nutrients</div>
+  <div class="li"><div class="ll" style="background:#A84E14"></div>Food Systems</div>
+  <div class="li"><div class="ll" style="background:#3C26A0"></div>Transport</div>
+  <div class="li"><div class="ll" style="background:#8A2068"></div>People</div>
+</div>
+
+<script>
+/* ── INFO DATA ──────────────────────────────────────────────── */
+const INFO = {
+  regional:{
+    icon:'🌐',title:'REGIONAL DOME',
+    sub:'Geodesic Canopy — Fuller\'s Largest Tessellation, 5,000–50,000 People',
+    body:`<p>The outermost dome encloses an entire eco-district. Buckminster Fuller's <em>ephemeralization</em> — doing more with less — is embodied here: a geodesic structure achieves maximum enclosed volume from minimum material, reducing embodied carbon by orders of magnitude vs. conventional construction.</p><p style="margin-top:8px">Transparent ETFE cushions allow full-spectrum light while buffering the microclimate. The dome's thermal mass creates a temperate zone, reducing heating and cooling energy to near zero.</p>`,
+    metrics:[
+      {l:'Diameter',v:'1–3 km'},{l:'Population',v:'5,000–50,000'},
+      {l:'Structure',v:'Geodesic + ETFE'},{l:'Climate',v:'Passively moderated'},
+      {l:'Energy',v:'100% solar PV'},{l:'Principle',v:'Max volume / min material'},
+    ]
+  },
+  community:{
+    icon:'🏘',title:'COMMUNITY DOME',
+    sub:'Neighbourhood Scale — ~500 Residents, Shared Infrastructure',
+    body:`<p>The community dome houses roughly 500 people — small enough for genuine social trust, large enough for shared infrastructure. Central food markets, communal kitchens, tool libraries and maker spaces operate here.</p><p style="margin-top:8px">Rainwater cisterns and greywater reed beds are managed as community commons. The community council allocates shared energy, food and soil resources.</p>`,
+    metrics:[
+      {l:'Diameter',v:'200–400 m'},{l:'Population',v:'200–800'},
+      {l:'Food',v:'~60% self-sufficient'},{l:'Water',v:'Rainwater + greywater'},
+      {l:'Governance',v:'Community council'},{l:'Commons',v:'Shared soil + tools'},
+    ]
+  },
+  family:{
+    icon:'🏡',title:'FAMILY DOME',
+    sub:'Primary Living Unit — 4 to 8 People, Fully Integrated Cycles',
+    body:`<p>The family dome is the atomic unit. Private quarters, shared kitchen, a composting toilet system and a productive interior garden (~40 m²) form the core. Greywater filters through living walls and returns to the garden — the nutrient loop closes within the home itself.</p><p style="margin-top:8px">Solar panels at the dome crown cover all electrical needs. Surplus energy flows to the community battery; surplus food flows to the community market.</p>`,
+    metrics:[
+      {l:'Diameter',v:'15–30 m'},{l:'Residents',v:'4–8'},
+      {l:'Garden',v:'~40 m²'},{l:'Composting',v:'Integrated dry system'},
+      {l:'Water',v:'Greywater recycled'},{l:'Energy',v:'Solar self-sufficient'},
+    ]
+  },
+  solar:{
+    icon:'☀️',title:'SOLAR ENERGY SYSTEM',
+    sub:'Integrated Photovoltaics Across All Three Dome Tiers',
+    body:`<p>Each dome crown carries bifacial solar panels and BIPV glazing. Energy flows from the regional solar field to a shared community battery bank. Family domes draw from the community grid during low-sun periods.</p><p style="margin-top:8px">The system targets 100% electrical self-sufficiency. Surplus power during peak solar feeds cooking, water heating and tool charging in the commons. No fossil fuels enter.</p>`,
+    metrics:[
+      {l:'Type',v:'Bifacial PV + BIPV glass'},{l:'Coverage',v:'100% electrical'},
+      {l:'Storage',v:'Community battery bank'},{l:'Surplus',v:'Community tools + heat'},
+    ]
+  },
+  water:{
+    icon:'💧',title:'RAINWATER HARVESTING',
+    sub:'Closed-Loop Hydrological Cycle — Over 90% Water Retained',
+    body:`<p>The dome surfaces act as living catchment membranes. Rainfall flows along geodesic channels to underground cisterns. Composting toilets eliminate blackwater entirely. Greywater from kitchens and showers passes through constructed reed bed biofilters before re-entering the drip irrigation network.</p><p style="margin-top:8px">Over 90% of water entering the dome system is retained and recirculated. The loop is nearly closed.</p>`,
+    metrics:[
+      {l:'Catchment eff.',v:'>90%'},{l:'Treatment',v:'Reed bed biofilter'},
+      {l:'Blackwater',v:'Eliminated (dry toilets)'},{l:'Irrigation',v:'Drip-fed from cistern'},
+    ]
+  },
+  nutrients:{
+    icon:'🌱',title:'NUTRIENT CYCLE',
+    sub:'Closed-Loop Soil Biology — Nothing Leaves as Waste',
+    body:`<p>Food scraps, composting toilet output and garden cuttings re-enter the soil as compost and biochar. Biochar permanently sequesters carbon while dramatically improving soil water-holding capacity and microbial life.</p><p style="margin-top:8px">Mycorrhizal networks connect all plants into a shared underground nutrient and communication system. The nutrient loop closes completely within the dome boundary — nothing leaves as waste.</p>`,
+    metrics:[
+      {l:'Compost output',v:'2 kg/person/wk'},{l:'Nutrient recovery',v:'~95%'},
+      {l:'Carbon',v:'Net sequestration'},{l:'Soil trend',v:'Improving annually'},
+    ]
+  },
+  food:{
+    icon:'🥬',title:'FOOD SYSTEMS',
+    sub:'Embedded Productive Landscape — 80% Self-Sufficiency Target',
+    body:`<p>Food production is distributed across all three scales: family dome gardens grow leafy greens, herbs and seasonal vegetables; community orchards and intensive market gardens produce staple calories; the regional scale adds aquaculture ponds, mushroom cultivation and grain biomes.</p><p style="margin-top:8px">The food commons at community level is where surplus is shared, preserved and traded. A mostly plant-based diet dramatically reduces the land and water footprint.</p>`,
+    metrics:[
+      {l:'Target',v:'80% self-sufficient'},{l:'Family garden',v:'40–60 m²'},
+      {l:'Community farm',v:'2–5 hectares'},{l:'Diet',v:'Mostly plant-based'},
+    ]
+  },
+  people:{
+    icon:'🚶',title:'PEOPLE & DAILY LIFE',
+    sub:'Social Fabric — Residents Moving Between Home, Commons & Landscape',
+    body:`<p>People are the heartbeat of the nested-living precinct. Residents walk between the family domes and the community commons for meals, markets, and shared workshops. Children move freely between home and neighbourhood — the short, traffic-free distances make this safe by design.</p><p style="margin-top:8px">Workers tend community gardens and orchards; artisans gather in shared maker spaces; elders rest in harbour-side reading groves. The scale of the precinct is tuned to the human footstep — nothing important is more than a 10-minute walk away.</p>`,
+    metrics:[
+      {l:'Primary mode',v:'Walking'},{l:'Max walk time',v:'~10 minutes'},
+      {l:'Commons visits',v:'Multiple/day'},{l:'Community size',v:'Human-scale'},
+    ]
+  },
+  transport:{
+    icon:'🚲',title:'ACTIVE TRANSPORT',
+    sub:'Cycling First, Shared Electric Second — No Private Car Needed',
+    body:`<p>Within the nested living precinct, cycling and walking are the primary modes. Covered cycleways connect all domes at ground level. Cargo bikes handle goods movement between family and community tiers. A small shared fleet of electric vehicles handles trips beyond the regional dome boundary.</p><p style="margin-top:8px">Private car ownership is unnecessary and by design discouraged. The transport network is sized for human-scale movement, freeing vast land for food production and ecology.</p>`,
+    metrics:[
+      {l:'Primary mode',v:'Cycling + walking'},{l:'Goods',v:'Cargo e-bikes'},
+      {l:'External',v:'Shared EV fleet'},{l:'Cars',v:'Shared, not owned'},
+    ]
+  },
+};
+
+/* ── STATE ──────────────────────────────────────────────────── */
+let isDark = false;
+const L = {solar:true,water:true,nutrients:true,food:true,transport:true,people:true};
+
+/* ── SVG HELPERS ────────────────────────────────────────────── */
+const SV = document.getElementById('sv');
+const NS = 'http://www.w3.org/2000/svg';
+function mk(tag,a){const e=document.createElementNS(NS,tag);if(a)for(const[k,v]of Object.entries(a))e.setAttribute(k,String(v));return e;}
+function g(id,cls){const e=mk('g');if(id)e.id=id;if(cls)e.setAttribute('class',cls);return e;}
+function ln(x1,y1,x2,y2,a){return mk('line',{x1,y1,x2,y2,...(a||{})});}
+function arc(cx,cy,r){return `M ${cx-r},${cy} A ${r},${r} 0 0,1 ${cx+r},${cy}`;}
+
+/* ── GEODESIC DOME GRID ─────────────────────────────────────── */
+function domeGrid(cx,cy,r,nH,ds,stroke,sw){
+  const gg=g();
+  gg.setAttribute('fill','none');
+  gg.setAttribute('stroke',stroke);
+  gg.setAttribute('stroke-width',sw);
+  // Horizontal rings
+  for(let i=1;i<nH;i++){
+    const h=(i/nH)*r, y=cy-h, hw=Math.sqrt(r*r-h*h);
+    gg.appendChild(ln(cx-hw,y,cx+hw,y));
+  }
+  // Diagonal lines at +60° and -60°
+  function diag(m){
+    for(let sx=cx-r*2.3;sx<=cx+r*2.3;sx+=ds){
+      const k=-m*sx+cy, A=1+m*m, B=-2*cx+2*m*(k-cy), C=cx*cx+(k-cy)*(k-cy)-r*r;
+      const D=B*B-4*A*C; if(D<0)continue;
+      const sd=Math.sqrt(D);
+      const t1=(-B-sd)/(2*A), t2=(-B+sd)/(2*A);
+      const x1=t1,y1=m*t1+k, x2=t2,y2=m*t2+k;
+      const ok1=y1<=cy+1, ok2=y2<=cy+1;
+      let lx1,ly1,lx2,ly2;
+      if(ok1&&ok2){lx1=x1;ly1=y1;lx2=x2;ly2=y2;}
+      else if(ok1){lx1=x1;ly1=y1;const xb=(cy-k)/m;lx2=xb;ly2=cy;}
+      else if(ok2){const xb=(cy-k)/m;lx1=xb;ly1=cy;lx2=x2;ly2=y2;}
+      else continue;
+      if(Math.hypot(lx2-lx1,ly2-ly1)<2)continue;
+      gg.appendChild(ln(+lx1.toFixed(1),+ly1.toFixed(1),+lx2.toFixed(1),+ly2.toFixed(1)));
+    }
+  }
+  diag(-Math.sqrt(3)); diag(Math.sqrt(3));
+  return gg;
+}
+
+/* ── ANIMATED PARTICLE ALONG PATH ──────────────────────────── */
+function particle(pathId, color, dur, delay, r=3.5){
+  const c=mk('circle',{r,fill:color});
+  const am=mk('animateMotion',{dur:`${dur}s`,repeatCount:'indefinite',begin:`${delay}s`});
+  const mp=mk('mpath',{'href':`#${pathId}`});
+  am.appendChild(mp); c.appendChild(am);
+  // Opacity animation
+  const ao=mk('animate',{attributeName:'opacity',values:'0;0.92;0.92;0',
+    keyTimes:'0;0.1;0.9;1',dur:`${dur}s`,repeatCount:'indefinite',begin:`${delay}s`});
+  c.appendChild(ao);
+  return c;
+}
+
+/* ── BUILD SCENE ────────────────────────────────────────────── */
+function build(){
+  SV.innerHTML='';
+  const VW=1400,VH=780,GY=562;
+  const D=isDark;
+  const cl=(l,d)=>D?d:l;
+
+  /* DEFS */
+  const defs=mk('defs');
+
+  function linGrad(id,x1,y1,x2,y2,stops){
+    const gr=mk('linearGradient',{id,x1,y1,x2,y2,gradientUnits:'objectBoundingBox'});
+    stops.forEach(([off,col])=>{gr.appendChild(mk('stop',{offset:off,'stop-color':col}));});
+    defs.appendChild(gr);
+  }
+  linGrad('gSky','0','0','0','1',[
+    ['0%',  cl('#9ECEE8','#020810')],
+    ['58%', cl('#C4DCF0','#0C1A30')],
+    ['100%',cl('#D8BA78','#182840')],
+  ]);
+  linGrad('gGround','0','0','0','1',[
+    ['0%',  cl('#8A6C48','#1C1208')],
+    ['50%', cl('#5A3C20','#100C06')],
+    ['100%',cl('#381A08','#080604')],
+  ]);
+  linGrad('gSoil','0','0','0','1',[
+    ['0%',cl('#6A4820','#140C06')],['100%',cl('#3A2010','#080402')]
+  ]);
+  linGrad('gMtnFar','0','0','0','1',[
+    ['0%',cl('rgba(148,172,180,0.82)','rgba(12,20,30,0.90)')],
+    ['100%',cl('rgba(108,140,148,0.96)','rgba(8,14,24,0.98)')],
+  ]);
+  linGrad('gMtnNear','0','0','0','1',[
+    ['0%',cl('#486844','#0A1C10')],['100%',cl('#2A4020','#060E08')]
+  ]);
+
+  // Dome glass radial
+  const rgGlass=mk('radialGradient',{id:'gDomeGlass',cx:'0.42',cy:'0.28',r:'0.75',gradientUnits:'objectBoundingBox'});
+  [[0,cl('rgba(175,232,250,0.26)','rgba(0,215,195,0.09)')],
+   [1,cl('rgba(110,198,228,0.05)','rgba(0,180,165,0.01)')]
+  ].forEach(([off,col])=>rgGlass.appendChild(mk('stop',{offset:String(off),'stop-color':col})));
+  defs.appendChild(rgGlass);
+
+  // Clip paths for dome grids
+  function domeClip(id,cx,cy,r){
+    const cp=mk('clipPath',{id});
+    cp.appendChild(mk('path',{d:arc(cx,cy,r)}));
+    defs.appendChild(cp);
+  }
+  // DOME CENTERS & RADII — separated across landscape (drone-shot layout)
+  const R_cx=320, R_cy=GY, R_r=148;                                // Regional dome (left)
+  const C_cx=740, C_cy=GY, C_r=104;                                // Community dome (center)
+  const FA_cx=1040, FB_cx=1145, FC_cx=1250, F_cy=GY, F_r=42;        // Family cluster (right)
+  domeClip('clipR',R_cx,R_cy,R_r);
+  domeClip('clipC',C_cx,C_cy,C_r);
+  domeClip('clipFA',FA_cx,F_cy,F_r);
+  domeClip('clipFB',FB_cx,F_cy,F_r);
+  domeClip('clipFC',FC_cx,F_cy,F_r);
+
+  // Flow paths (for animateMotion mpath) — connecting separated domes
+  const paths=[
+    // SOLAR — sun → each dome crown (not nested; direct fan-out)
+    {id:'pS1',d:`M 1320,80 C 1080,160 680,260 ${R_cx},${R_cy-R_r+6}`},      // Sun→Regional crown
+    {id:'pS2',d:`M 1320,80 C 1180,180 920,310 ${C_cx},${C_cy-C_r+6}`},      // Sun→Community crown
+    {id:'pS3',d:`M 1320,80 C 1300,220 1180,380 ${FA_cx},${F_cy-F_r+6}`},    // Sun→Family A
+    {id:'pS4',d:`M 1320,80 C 1315,240 1220,400 ${FB_cx},${F_cy-F_r+6}`},    // Sun→Family B
+    {id:'pS5',d:`M 1320,80 C 1330,240 1275,410 ${FC_cx},${F_cy-F_r+6}`},    // Sun→Family C
+    // WATER — clouds → domes, underground pipe across all
+    {id:'pW1',d:`M 180,120 C 220,240 280,360 ${R_cx-40},${R_cy-R_r+40}`},   // Cloud→Regional
+    {id:'pW2',d:`M 560,95  C 610,220 680,360 ${C_cx-20},${C_cy-C_r+30}`},    // Cloud→Community
+    {id:'pW3',d:`M 1020,110 C 1080,240 1130,400 ${FB_cx},${F_cy-F_r+20}`},   // Cloud→Family B
+    {id:'pW4',d:`M ${R_cx},${GY+8} C 520,${GY+22} 640,${GY+22} ${C_cx},${GY+8}`},         // Regional→Community underground
+    {id:'pW5',d:`M ${C_cx},${GY+8} C 880,${GY+22} 980,${GY+22} ${FB_cx},${GY+8}`},         // Community→Family underground
+    // NUTRIENTS — underground soil cycle across all domes
+    {id:'pN1',d:`M ${R_cx},${GY+40} C 500,${GY+58} 620,${GY+58} ${C_cx},${GY+40}`},
+    {id:'pN2',d:`M ${C_cx},${GY+40} C 880,${GY+58} 1000,${GY+58} ${FB_cx},${GY+40}`},
+    // Root channels down from each dome base
+    {id:'pN3',d:`M ${R_cx},${GY-2} L ${R_cx},${GY+38}`},
+    {id:'pN4',d:`M ${C_cx},${GY-2} L ${C_cx},${GY+38}`},
+    {id:'pN5',d:`M ${FA_cx},${GY-2} L ${FA_cx},${GY+38}`},
+    {id:'pN6',d:`M ${FB_cx},${GY-2} L ${FB_cx},${GY+38}`},
+    {id:'pN7',d:`M ${FC_cx},${GY-2} L ${FC_cx},${GY+38}`},
+    // FOOD — family cluster → community → regional (surplus flows centrally)
+    {id:'pF1',d:`M ${FA_cx},${F_cy-F_r+8} C 950,${F_cy-90} 850,${C_cy-C_r+30} ${C_cx+30},${C_cy-C_r+20}`},
+    {id:'pF2',d:`M ${FB_cx},${F_cy-F_r+8} C 1000,${F_cy-100} 880,${C_cy-C_r+20} ${C_cx+10},${C_cy-C_r+15}`},
+    {id:'pF3',d:`M ${FC_cx},${F_cy-F_r+8} C 1080,${F_cy-110} 900,${C_cy-C_r+30} ${C_cx+20},${C_cy-C_r+20}`},
+    {id:'pF4',d:`M ${C_cx-20},${C_cy-C_r+30} C 600,${C_cy-60} 500,${R_cy-R_r+60} ${R_cx+40},${R_cy-R_r+40}`},
+    // TRANSPORT — winding road across full landscape past every dome
+    {id:'pT1',d:`M 40,${GY+22} C 200,${GY+14} 280,${GY+28} ${R_cx+40},${GY+24} C 520,${GY+30} 640,${GY+18} ${C_cx+20},${GY+24} C 880,${GY+30} 980,${GY+16} ${FB_cx},${GY+24} C 1320,${GY+30} 1370,${GY+20} 1380,${GY+22}`},
+    // Reverse transport path (cars going the other way)
+    {id:'pT2',d:`M 1380,${GY+38} C 1320,${GY+46} 1200,${GY+34} ${FB_cx},${GY+40} C 980,${GY+46} 880,${GY+32} ${C_cx+20},${GY+40} C 640,${GY+46} 520,${GY+34} ${R_cx+40},${GY+40} C 280,${GY+46} 200,${GY+30} 40,${GY+38}`},
+    // PEOPLE walking path — gentler curve slightly above road
+    {id:'pPe',d:`M 60,${GY+8} C 200,${GY+2} 260,${GY+10} ${R_cx+30},${GY+6} C 500,${GY+10} 620,${GY+2} ${C_cx+10},${GY+8} C 860,${GY+12} 960,${GY+2} ${FB_cx-10},${GY+8} C 1300,${GY+12} 1350,${GY+6} 1380,${GY+8}`},
+    {id:'pPe2',d:`M 1380,${GY+14} C 1300,${GY+18} 1200,${GY+10} ${FB_cx+10},${GY+14} C 960,${GY+18} 860,${GY+8} ${C_cx-10},${GY+14} C 620,${GY+18} 500,${GY+8} ${R_cx-30},${GY+14} C 260,${GY+18} 160,${GY+10} 60,${GY+14}`},
+  ];
+  paths.forEach(({id,d})=>defs.appendChild(mk('path',{id,d,fill:'none',stroke:'none'})));
+
+  SV.appendChild(defs);
+
+  /* SKY */
+  SV.appendChild(mk('rect',{x:0,y:0,width:VW,height:GY+14,fill:'url(#gSky)'}));
+
+  /* STARS (dark mode) */
+  if(D){
+    const sg=g('stars');
+    [[42,25],[130,78],[220,16],[368,52],[500,20],[612,44],[772,10],[922,46],
+     [1068,26],[1215,56],[1318,16],[92,115],[272,96],[462,86],[665,106],
+     [872,65],[1112,90],[1365,76],[172,42],[385,32],[595,66],[800,36],
+     [995,20],[1192,50],[78,145],[312,125],[562,135],[812,115],[1062,140],[1312,128],
+     [195,165],[445,155],[695,168],[945,145],[1205,162]
+    ].forEach(([x,y])=>{
+      sg.appendChild(mk('circle',{cx:x,cy:y,r:(Math.random()*1.3+0.4).toFixed(1),
+        fill:'white',opacity:(Math.random()*0.45+0.28).toFixed(2)}));
+    });
+    SV.appendChild(sg);
+  }
+
+  /* SUN / MOON */
+  const sunX=1320,sunY=80;
+  const sunG=g('sun','hot'); sunG.dataset.info='solar';
+  if(!D){
+    sunG.appendChild(mk('circle',{cx:sunX,cy:sunY,r:64,fill:'rgba(255,210,65,0.10)'}));
+    sunG.appendChild(mk('circle',{cx:sunX,cy:sunY,r:45,fill:'rgba(255,195,45,0.18)'}));
+    sunG.appendChild(mk('circle',{cx:sunX,cy:sunY,r:27,fill:'#FFD048'}));
+    for(let i=0;i<12;i++){
+      const a=(i/12)*Math.PI*2;
+      sunG.appendChild(mk('line',{
+        x1:(sunX+Math.cos(a)*33).toFixed(1),y1:(sunY+Math.sin(a)*33).toFixed(1),
+        x2:(sunX+Math.cos(a)*50).toFixed(1),y2:(sunY+Math.sin(a)*50).toFixed(1),
+        stroke:'#FFB400','stroke-width':'2.5','stroke-linecap':'round',opacity:'0.72'
+      }));
+    }
+  } else {
+    sunG.appendChild(mk('circle',{cx:sunX,cy:sunY,r:26,fill:'#C0D4E8'}));
+    sunG.appendChild(mk('circle',{cx:sunX+10,cy:sunY-7,r:20,fill:'#0A1830'}));
+    [[sunX-38,sunY-20],[sunX-32,sunY+32],[sunX+37,sunY-27],[sunX+45,sunY+33]].forEach(([x,y])=>
+      sunG.appendChild(mk('circle',{cx:x,cy:y,r:'1.7',fill:'#B0C8E0',opacity:'0.78'})));
+  }
+  SV.appendChild(sunG);
+
+  /* CLOUDS */
+  const cFill=cl('rgba(255,255,255,0.87)','rgba(15,36,66,0.76)');
+  const cStr=cl('rgba(195,218,238,0.5)','rgba(28,52,92,0.48)');
+  function cloud(id,tx,ty,sc,infoKey){
+    const cg=g(id,'hot'); cg.dataset.info=infoKey||'water';
+    cg.setAttribute('transform',`translate(${tx},${ty}) scale(${sc})`);
+    [{x:0,y:0,r:27},{x:25,y:-11,r:32},{x:54,y:-4,r:23},{x:77,y:5,r:20},
+     {x:-21,y:5,r:20},{x:38,y:-2,r:28}
+    ].forEach(b=>cg.appendChild(mk('circle',{cx:b.x,cy:b.y,r:b.r,fill:cFill,stroke:cStr,'stroke-width':'0.5'})));
+    return cg;
+  }
+  SV.appendChild(cloud('cl1',180,118,1.10));
+  SV.appendChild(cloud('cl2',560,95,0.96));
+  SV.appendChild(cloud('cl3',1020,110,1.02));
+
+  /* FAR MOUNTAINS / HORIZON — vast Auckland isthmus silhouette */
+  const mfg=g('mtn-far');
+  mfg.appendChild(mk('path',{
+    d:`M0,${GY} L0,408 C70,392 140,360 218,330 C280,306 340,340 408,318
+       C470,298 520,270 590,282 C650,292 694,312 750,298
+       C804,284 855,256 922,270 C980,282 1024,262 1084,244
+       C1142,228 1192,248 1258,264 C1316,278 1362,272 1400,280 L1400,${GY} Z`,
+    fill:'url(#gMtnFar)'
+  }));
+  // Distant harbour strip (Waitematā) — visible between far and near ranges
+  const harbCol=cl('rgba(90,150,180,0.55)','rgba(8,30,60,0.78)');
+  const harbHi =cl('rgba(140,190,215,0.65)','rgba(20,60,110,0.78)');
+  mfg.appendChild(mk('rect',{x:0,y:412,width:1400,height:30,fill:harbCol,opacity:'0.7'}));
+  // Thin ripple lines on harbour
+  for(let i=0;i<5;i++){
+    mfg.appendChild(mk('line',{x1:80+i*260,y1:422+(i%2)*4,x2:200+i*260,y2:422+(i%2)*4,
+      stroke:harbHi,'stroke-width':'0.8',opacity:'0.55'}));
+  }
+  // Tiny sailboats on harbour
+  [[420,418],[680,424],[950,420],[1180,422]].forEach(([x,y])=>{
+    const sg=g();
+    sg.appendChild(mk('polygon',{points:`${x},${y-7} ${x+6},${y} ${x-1},${y}`,
+      fill:cl('rgba(250,250,250,0.88)','rgba(180,200,220,0.78)')}));
+    sg.appendChild(mk('line',{x1:x-4,y1:y+1,x2:x+6,y2:y+1,
+      stroke:cl('rgba(60,40,20,0.75)','rgba(120,140,160,0.7)'),'stroke-width':'0.9'}));
+    mfg.appendChild(sg);
+  });
+  SV.appendChild(mfg);
+
+  /* RANGITOTO — iconic volcanic cone on the harbour horizon */
+  const rangG=g('rangitoto');
+  rangG.appendChild(mk('path',{
+    d:`M 1070,412 C 1095,396 1110,378 1135,368 C 1162,360 1188,378 1212,394 C 1232,406 1250,412 1260,412 Z`,
+    fill:cl('rgba(78,100,108,0.85)','rgba(10,20,32,0.92)')
+  }));
+  rangG.appendChild(mk('path',{
+    d:`M 1125,378 L 1135,368 L 1148,380`,
+    fill:'none',stroke:cl('rgba(58,80,88,0.7)','rgba(30,50,70,0.7)'),'stroke-width':'1'
+  }));
+  SV.appendChild(rangG);
+
+  /* DISTANT AUCKLAND CBD silhouette — Sky Tower hint */
+  const cbdG=g('cbd');
+  const cbdCol=cl('rgba(120,140,155,0.72)','rgba(14,26,44,0.88)');
+  // Cluster of buildings
+  [[612,386,9,26],[624,378,8,34],[635,390,7,22],[646,382,10,30],
+   [658,388,6,24],[668,384,9,28],[680,390,7,22]].forEach(([x,y,w,h])=>{
+    cbdG.appendChild(mk('rect',{x,y,width:w,height:h+(412-y-h),fill:cbdCol}));
+  });
+  // Sky Tower
+  cbdG.appendChild(mk('rect',{x:652,y:352,width:3,height:60,fill:cbdCol}));
+  cbdG.appendChild(mk('circle',{cx:653.5,cy:356,r:4.5,fill:cbdCol}));
+  cbdG.appendChild(mk('rect',{x:653,y:340,width:1.5,height:14,fill:cbdCol}));
+  SV.appendChild(cbdG);
+
+  /* NEAR ROLLING HILLS (Auckland volcanic cones spread across) */
+  const mng=g('mtn-near');
+  mng.appendChild(mk('path',{
+    d:`M0,${GY} L0,512 C40,498 78,474 120,462 C164,450 190,468 228,462
+       C264,456 292,436 328,440 C358,444 384,462 410,468 C448,478 472,466 508,472
+       C544,478 572,494 608,492 C648,490 678,472 716,478 C758,484 788,502 824,498
+       C864,494 894,478 930,484 C972,492 998,506 1036,502 C1076,498 1108,480 1146,488
+       C1188,496 1218,510 1258,506 C1302,502 1338,488 1400,498 L1400,${GY} Z`,
+    fill:'url(#gMtnNear)'
+  }));
+  SV.appendChild(mng);
+
+  /* GROUND */
+  SV.appendChild(mk('rect',{x:0,y:GY,width:VW,height:VH-GY,fill:'url(#gGround)'}));
+  SV.appendChild(mk('line',{x1:0,y1:GY,x2:VW,y2:GY,
+    stroke:cl('rgba(100,65,30,0.55)','rgba(40,25,10,0.55)'),'stroke-width':'1.3'}));
+
+  /* SOIL CROSS-SECTION (spans beneath all separated domes) */
+  const soilGrp=g('soil');
+  soilGrp.appendChild(mk('rect',{x:140,y:GY+2,width:1160,height:70,fill:'url(#gSoil)',opacity:'0.5',rx:3}));
+  // Soil texture dots
+  for(let yi=GY+10;yi<GY+68;yi+=9){
+    for(let xi=150;xi<1296;xi+=18){
+      soilGrp.appendChild(mk('circle',{cx:xi+(Math.random()*6-3),cy:yi,r:'1.1',
+        fill:cl('rgba(100,60,20,0.25)','rgba(50,28,8,0.3)')}));
+    }
+  }
+  SV.appendChild(soilGrp);
+
+  /* ── DOMES (back to front) ──────────────────────────────── */
+  const domeColors={
+    r: cl('rgba(60,155,185,0.47)','rgba(0,215,195,0.32)'),
+    c: cl('rgba(45,135,168,0.62)','rgba(0,215,195,0.48)'),
+    f: cl('rgba(28,115,148,0.78)','rgba(0,215,195,0.66)'),
+  };
+
+  function drawDome(cx,cy,r,clipId,stroke,gridArgs,infoKey,label){
+    const dg=g(null,'hot'); dg.dataset.info=infoKey;
+    // Glass fill
+    dg.appendChild(mk('path',{d:arc(cx,cy,r),fill:'url(#gDomeGlass)'}));
+    // Grid
+    const grid=domeGrid(cx,cy,r,...gridArgs,stroke,'0.75');
+    grid.setAttribute('clip-path',`url(#${clipId})`);
+    dg.appendChild(grid);
+    // Outline
+    dg.appendChild(mk('path',{d:arc(cx,cy,r),fill:'none',stroke,
+      'stroke-width':'1.8','stroke-linecap':'round'}));
+    // Base line
+    dg.appendChild(mk('line',{x1:cx-r,y1:cy,x2:cx+r,y2:cy,
+      stroke,'stroke-width':'1.4',opacity:'0.65'}));
+    // Label tag
+    if(label){
+      const lw=label.length*6.8+18;
+      const ltag=g();
+      ltag.appendChild(mk('rect',{x:cx-lw/2,y:cy-r-22,width:lw,height:17,rx:8,
+        fill:cl('rgba(255,250,242,0.72)','rgba(4,12,24,0.72)')}));
+      const lt=mk('text',{x:cx,y:cy-r-10,'text-anchor':'middle',
+        'font-family':'Syncopate,sans-serif','font-size':'7.5','font-weight':'700',
+        'letter-spacing':'0.13em',fill:stroke,opacity:'0.9'});
+      lt.textContent=label;
+      ltag.appendChild(lt);
+      dg.appendChild(ltag);
+    }
+    return dg;
+  }
+
+  // Regional (left)
+  SV.appendChild(drawDome(R_cx,R_cy,R_r,'clipR',domeColors.r,
+    [4,54],'regional','REGIONAL DOME'));
+  // Community (center)
+  SV.appendChild(drawDome(C_cx,C_cy,C_r,'clipC',domeColors.c,
+    [4,38],'community','COMMUNITY DOME'));
+  // Family domes (right cluster)
+  SV.appendChild(drawDome(FA_cx,F_cy,F_r,'clipFA',domeColors.f,[3,20],'family',null));
+  SV.appendChild(drawDome(FB_cx,F_cy,F_r,'clipFB',domeColors.f,[3,20],'family',null));
+  SV.appendChild(drawDome(FC_cx,F_cy,F_r,'clipFC',domeColors.f,[3,20],'family',null));
+
+  // Family dome labels (above)
+  ['A','B','C'].forEach((ltr,i)=>{
+    const cx=[FA_cx,FB_cx,FC_cx][i];
+    const lt=mk('text',{x:cx,y:F_cy-F_r-10,'text-anchor':'middle',
+      'font-family':'Syncopate,sans-serif','font-size':'7.5','font-weight':'700',
+      'letter-spacing':'0.12em',fill:domeColors.f,opacity:'0.9'});
+    lt.textContent=`FAMILY ${ltr}`;
+    SV.appendChild(lt);
+  });
+
+  /* ── INTERIOR FEATURES ──────────────────────────────────── */
+  // Garden beds inside family domes
+  const gardenFill=cl('rgba(48,110,36,0.48)','rgba(0,90,42,0.48)');
+  const gardenStr=cl('rgba(36,92,28,0.68)','rgba(0,120,56,0.68)');
+  [FA_cx,FB_cx,FC_cx].forEach(cx=>{
+    SV.appendChild(mk('ellipse',{cx,cy:GY-5,rx:30,ry:6,fill:gardenFill,stroke:gardenStr,'stroke-width':'1'}));
+    for(let i=-1;i<=1;i++){
+      const px=cx+i*11, py=GY-10;
+      const pg=g();
+      pg.appendChild(mk('line',{x1:px,y1:py+3,x2:px,y2:py-4,stroke:gardenStr,'stroke-width':'1.2'}));
+      pg.appendChild(mk('ellipse',{cx:px,cy:py-5,rx:3.5,ry:3,fill:gardenFill,stroke:gardenStr,'stroke-width':'0.7'}));
+      SV.appendChild(pg);
+    }
+  });
+  // Community central plaza / food market
+  SV.appendChild(mk('ellipse',{cx:C_cx,cy:GY-5,rx:70,ry:9,fill:gardenFill,stroke:gardenStr,'stroke-width':'1'}));
+  for(let i=-3;i<=3;i++){
+    const px=C_cx+i*18, py=GY-13;
+    const pg=g();
+    pg.appendChild(mk('line',{x1:px,y1:py+4,x2:px,y2:py-6,stroke:gardenStr,'stroke-width':'1.3'}));
+    pg.appendChild(mk('ellipse',{cx:px,cy:py-7,rx:4.5,ry:3.5,fill:gardenFill,stroke:gardenStr,'stroke-width':'0.8'}));
+    SV.appendChild(pg);
+  }
+  // Regional — orchards + aquaculture pond inside
+  for(let i=-4;i<=4;i++){
+    const tx=R_cx+i*22, ty=GY-9;
+    const pg=g();
+    pg.appendChild(mk('line',{x1:tx,y1:ty+5,x2:tx,y2:ty-8,stroke:gardenStr,'stroke-width':'1.4'}));
+    pg.appendChild(mk('circle',{cx:tx,cy:ty-10,r:6,fill:gardenFill,stroke:gardenStr,'stroke-width':'0.8'}));
+    SV.appendChild(pg);
+  }
+  // Aquaculture pond within regional
+  SV.appendChild(mk('ellipse',{cx:R_cx-60,cy:GY-4,rx:22,ry:6,
+    fill:cl('rgba(40,120,170,0.48)','rgba(0,140,180,0.42)'),
+    stroke:cl('rgba(60,140,190,0.7)','rgba(0,160,200,0.62)'),'stroke-width':'1'}));
+
+  // Solar panels at dome crowns
+  function solarPanel(cx,topY,w,h){
+    const sg=g(null,'hot'); sg.dataset.info='solar';
+    const panFill=cl('rgba(35,70,120,0.75)','rgba(20,45,100,0.82)');
+    const panHighl=cl('rgba(90,130,200,0.55)','rgba(45,75,180,0.65)');
+    sg.appendChild(mk('rect',{x:cx-w/2,y:topY-h/2,width:w,height:h,
+      fill:panFill,stroke:panHighl,'stroke-width':'1',rx:'2'}));
+    sg.appendChild(mk('line',{x1:cx,y1:topY-h/2,x2:cx,y2:topY+h/2,stroke:panHighl,'stroke-width':'0.6'}));
+    sg.appendChild(mk('line',{x1:cx-w/2,y1:topY,x2:cx+w/2,y2:topY,stroke:panHighl,'stroke-width':'0.6'}));
+    sg.appendChild(mk('line',{x1:cx-w/4,y1:topY-h/4,x2:cx-w/8,y2:topY-h/2+1,
+      stroke:'rgba(255,240,180,0.55)','stroke-width':'1'}));
+    return sg;
+  }
+  SV.appendChild(solarPanel(R_cx, R_cy-R_r+8, 38, 18));
+  SV.appendChild(solarPanel(C_cx, C_cy-C_r+7, 28, 15));
+  [FA_cx,FB_cx,FC_cx].forEach(cx=>SV.appendChild(solarPanel(cx, F_cy-F_r+5, 14, 8)));
+
+  // Rainwater channels on dome surfaces
+  const chanCol=cl('rgba(35,115,180,0.60)','rgba(0,160,200,0.52)');
+  [[R_cx-R_r*0.72, R_cy-R_r*0.28],[R_cx+R_r*0.72, R_cy-R_r*0.28],
+   [C_cx-C_r*0.72, C_cy-C_r*0.28],[C_cx+C_r*0.72, C_cy-C_r*0.28]
+  ].forEach(([x1,y1])=>{
+    SV.appendChild(mk('line',{x1,y1,x2:x1,y2:GY,
+      stroke:chanCol,'stroke-width':'2.2','stroke-linecap':'round'}));
+    SV.appendChild(mk('polygon',{
+      points:`${x1-3.5},${GY-16} ${x1+3.5},${GY-16} ${x1},${GY-7}`,
+      fill:chanCol,opacity:'0.8'}));
+  });
+
+  // Cistern — beside community dome (shared infrastructure)
+  const cistG=g('cistern','hot'); cistG.dataset.info='water';
+  cistG.appendChild(mk('ellipse',{cx:C_cx+C_r+28,cy:GY-5,rx:24,ry:10,
+    fill:cl('rgba(28,78,138,0.48)','rgba(0,100,158,0.42)'),
+    stroke:cl('rgba(48,108,180,0.70)','rgba(0,140,198,0.62)'),'stroke-width':'1.5'}));
+  const cistLab=mk('text',{x:C_cx+C_r+28,y:GY-18,'text-anchor':'middle',
+    'font-family':'Syncopate,sans-serif','font-size':'7','letter-spacing':'0.1em',
+    fill:cl('rgba(28,100,170,0.85)','rgba(0,160,200,0.85)')});
+  cistLab.textContent='CISTERN';
+  cistG.appendChild(cistLab);
+  SV.appendChild(cistG);
+
+  // Composting area — beside regional dome
+  const compG=g('compost','hot'); compG.dataset.info='nutrients';
+  compG.appendChild(mk('ellipse',{cx:R_cx-R_r-32,cy:GY-4,rx:26,ry:11,
+    fill:cl('rgba(92,52,18,0.68)','rgba(52,28,8,0.78)'),
+    stroke:cl('rgba(118,75,28,0.78)','rgba(72,45,12,0.72)'),'stroke-width':'1.5'}));
+  const compLab=mk('text',{x:R_cx-R_r-32,y:GY-17,'text-anchor':'middle',
+    'font-family':'Syncopate,sans-serif','font-size':'7','letter-spacing':'0.1em',
+    fill:cl('rgba(110,68,22,0.85)','rgba(150,100,40,0.85)')});
+  compLab.textContent='COMPOST';
+  compG.appendChild(compLab);
+  const compIcon=mk('text',{x:R_cx-R_r-32,y:GY-6,'text-anchor':'middle',
+    'dominant-baseline':'middle','font-size':'11',
+    fill:cl('rgba(130,85,30,0.85)','rgba(160,110,50,0.85)')});
+  compIcon.textContent='♻';
+  compG.appendChild(compIcon);
+  SV.appendChild(compG);
+
+  /* TREES */
+  function tree(tx,ty,h){
+    const tr=g();
+    const tcol=cl('#3E6435','#0C3820');
+    const trtk=cl('#5A3818','#200E06');
+    tr.appendChild(mk('rect',{x:tx-3,y:ty-h*0.22,width:6,height:h*0.22,fill:trtk}));
+    [[0.32,0.62],[0.48,0.52],[0.62,0.42]].forEach(([hf,wf],i)=>{
+      const ey=ty-h*hf, ew=h*wf;
+      tr.appendChild(mk('polygon',{
+        points:`${tx},${ey-h*0.28} ${tx-ew/2},${ey} ${tx+ew/2},${ey}`,fill:tcol}));
+    });
+    return tr;
+  }
+  // Scatter trees across the wider landscape — between domes, not overlapping them
+  [[60,GY,72],[102,GY,56],[150,GY,62],[490,GY,50],[530,GY,68],[570,GY,54],[608,GY,46],
+   [870,GY,50],[908,GY,64],[948,GY,52],[985,GY,44],
+   [1310,GY,54],[1348,GY,66],[1378,GY,50]]
+  .forEach(([x,y,h])=>SV.appendChild(tree(x,y,h)));
+
+  /* ── FLOW LAYERS ────────────────────────────────────────── */
+
+  /* SOLAR */
+  const solG=g('layer-solar');
+  if(!L.solar)solG.setAttribute('opacity','0');
+  const solC=cl('#C08A0C','#E0A810');
+  paths.filter(p=>p.id.startsWith('pS')).forEach(({d},i)=>{
+    const p=mk('path',{d,fill:'none',stroke:solC,'stroke-width':i===0?2.2:1.4,
+      'stroke-dasharray':i===0?'8 5':'5 5',opacity:'0.8',class:'fsolar'});
+    p.style.animationDelay=`${-i*0.25}s`; solG.appendChild(p);
+  });
+  [{id:'pS1',dur:3.6,n:4},{id:'pS2',dur:3.2,n:3},
+   {id:'pS3',dur:3.0,n:2},{id:'pS4',dur:3.0,n:2},{id:'pS5',dur:3.0,n:2}
+  ].forEach(({id,dur,n})=>{
+    for(let i=0;i<n;i++) solG.appendChild(particle(id,cl('#FFD040','#FFD840'),dur,(dur/n)*i,3.5));
+  });
+  SV.appendChild(solG);
+
+  /* WATER */
+  const watG=g('layer-water');
+  if(!L.water)watG.setAttribute('opacity','0');
+  const watC=cl('#1870A0','#28A0D0');
+  // Rain drop lines under clouds
+  [[175,138,210,200],[195,132,228,195],
+   [555,118,590,180],[570,112,605,175],
+   [1015,130,1052,192],[1030,124,1068,188]
+  ].forEach(([x1,y1,x2,y2])=>{
+    watG.appendChild(mk('line',{x1,y1,x2,y2,
+      stroke:cl('rgba(80,160,210,0.55)','rgba(40,140,200,0.55)'),
+      'stroke-width':'1.5','stroke-dasharray':'3 6',class:'fwater',
+      style:`animation-delay:${(Math.random()*-1.5).toFixed(2)}s`}));
+  });
+  paths.filter(p=>p.id.startsWith('pW')).forEach(({d},i)=>{
+    const p=mk('path',{d,fill:'none',stroke:watC,'stroke-width':i<3?1.8:2.0,
+      'stroke-dasharray':'5 5',opacity:'0.76',class:'fwater'});
+    p.style.animationDelay=`${-i*0.45}s`; watG.appendChild(p);
+  });
+  [{id:'pW1',dur:3.2,n:3},{id:'pW2',dur:3.0,n:3},{id:'pW3',dur:3.2,n:3},
+   {id:'pW4',dur:3.6,n:3},{id:'pW5',dur:3.6,n:3}
+  ].forEach(({id,dur,n})=>{
+    for(let i=0;i<n;i++) watG.appendChild(particle(id,cl('#4AACE0','#38CCF0'),dur,(dur/n)*i,3.0));
+  });
+  SV.appendChild(watG);
+
+  /* NUTRIENTS */
+  const nutG=g('layer-nutrients');
+  if(!L.nutrients)nutG.setAttribute('opacity','0');
+  const nutC=cl('#287A14','#3CAA1A');
+  paths.filter(p=>p.id.startsWith('pN')).forEach(({d,id},i)=>{
+    const isRoot=id==='pN3'||id==='pN4'||id==='pN5'||id==='pN6'||id==='pN7';
+    const p=mk('path',{d,fill:'none',stroke:nutC,
+      'stroke-width':isRoot?1.2:2.0,'stroke-dasharray':isRoot?'3 5':'6 5',
+      opacity:'0.78',class:'fnutri'});
+    p.style.animationDelay=`${-i*0.3}s`; nutG.appendChild(p);
+  });
+  [{id:'pN1',dur:4.0,n:3},{id:'pN2',dur:4.0,n:3},
+   {id:'pN3',dur:1.4,n:2},{id:'pN4',dur:1.4,n:2},
+   {id:'pN5',dur:1.4,n:2},{id:'pN6',dur:1.4,n:2},{id:'pN7',dur:1.4,n:2}
+  ].forEach(({id,dur,n})=>{
+    for(let i=0;i<n;i++) nutG.appendChild(particle(id,cl('#5ABE22','#70E030'),dur,(dur/n)*i,3.0));
+  });
+  SV.appendChild(nutG);
+
+  /* FOOD */
+  const foodG=g('layer-food');
+  if(!L.food)foodG.setAttribute('opacity','0');
+  const foodC=cl('#A84E14','#D46A1A');
+  paths.filter(p=>p.id.startsWith('pF')).forEach(({d},i)=>{
+    const p=mk('path',{d,fill:'none',stroke:foodC,'stroke-width':1.5,
+      'stroke-dasharray':'5 5',opacity:'0.78',class:'ffood'});
+    p.style.animationDelay=`${-i*0.4}s`; foodG.appendChild(p);
+  });
+  const flb=mk('text',{x:C_cx,y:C_cy-C_r*0.58,'text-anchor':'middle',
+    'font-family':'Syncopate,sans-serif','font-size':'7.5','letter-spacing':'0.12em',
+    fill:cl('rgba(168,78,20,0.82)','rgba(210,106,26,0.82)')});
+  flb.textContent='FOOD COMMONS';
+  foodG.appendChild(flb);
+  [{id:'pF1',dur:3.0,n:2},{id:'pF2',dur:2.8,n:2},
+   {id:'pF3',dur:3.0,n:2},{id:'pF4',dur:3.4,n:2}
+  ].forEach(({id,dur,n})=>{
+    for(let i=0;i<n;i++) foodG.appendChild(particle(id,cl('#E07420','#FF9030'),dur,(dur/n)*i,3.0));
+  });
+  SV.appendChild(foodG);
+
+  /* TRANSPORT — moving vehicles along road paths */
+  const transG=g('layer-transport');
+  if(!L.transport)transG.setAttribute('opacity','0');
+  const transCol=cl('#3C26A0','#5840C0');
+  const roadPathD=paths.find(p=>p.id==='pT1').d;
+  // Road surface — render the path itself (wide stroke) for curves
+  transG.appendChild(mk('path',{d:roadPathD,fill:'none',
+    stroke:cl('rgba(210,195,145,0.42)','rgba(35,26,10,0.52)'),'stroke-width':'20','stroke-linecap':'round'}));
+  transG.appendChild(mk('path',{d:roadPathD,fill:'none',
+    stroke:cl('rgba(200,180,100,0.70)','rgba(60,48,18,0.70)'),
+    'stroke-width':'1.6','stroke-dasharray':'22 15',class:'ftrans'}));
+  // Cycling lane indicator (parallel)
+  transG.appendChild(mk('path',{d:paths.find(p=>p.id==='pT2').d,fill:'none',
+    stroke:transCol,'stroke-width':'1.0','stroke-dasharray':'30 12',opacity:'0.5',class:'ftrans'}));
+
+  // Helper: attach animateMotion to a group along a path
+  function drive(el, pathId, dur, delay){
+    const am=mk('animateMotion',{dur:`${dur}s`,repeatCount:'indefinite',
+      begin:`${delay}s`,rotate:'0'});
+    am.appendChild(mk('mpath',{href:`#${pathId}`}));
+    el.appendChild(am);
+    return el;
+  }
+
+  // Bicycle (drawn at origin)
+  function bike(col){
+    const bg=g();
+    bg.appendChild(mk('circle',{cx:-13,cy:0,r:8,fill:'none',stroke:col,'stroke-width':'1.7'}));
+    bg.appendChild(mk('circle',{cx:13,cy:0,r:8,fill:'none',stroke:col,'stroke-width':'1.7'}));
+    bg.appendChild(mk('line',{x1:-13,y1:-8,x2:-13,y2:8,stroke:col,'stroke-width':'0.7',opacity:'0.6'}));
+    bg.appendChild(mk('line',{x1:-21,y1:0,x2:-5,y2:0,stroke:col,'stroke-width':'0.7',opacity:'0.6'}));
+    bg.appendChild(mk('line',{x1:13,y1:-8,x2:13,y2:8,stroke:col,'stroke-width':'0.7',opacity:'0.6'}));
+    bg.appendChild(mk('line',{x1:5,y1:0,x2:21,y2:0,stroke:col,'stroke-width':'0.7',opacity:'0.6'}));
+    bg.appendChild(mk('polyline',{points:'-13,0 0,-10 13,0',fill:'none',stroke:col,'stroke-width':'1.9'}));
+    bg.appendChild(mk('line',{x1:0,y1:-10,x2:-5,y2:0,stroke:col,'stroke-width':'1.9'}));
+    bg.appendChild(mk('line',{x1:-2,y1:-10,x2:5,y2:-12,stroke:col,'stroke-width':'1.7'}));
+    bg.appendChild(mk('line',{x1:-4,y1:-10,x2:-9,y2:-10,stroke:col,'stroke-width':'1.7'}));
+    // Rider
+    bg.appendChild(mk('circle',{cx:0,cy:-18,r:3,fill:col}));
+    bg.appendChild(mk('line',{x1:0,y1:-15,x2:0,y2:-10,stroke:col,'stroke-width':'1.9'}));
+    return bg;
+  }
+  // Electric car
+  function ecar(col){
+    const cg=g();
+    cg.appendChild(mk('rect',{x:-22,y:-9,width:44,height:15,rx:5,fill:col,opacity:'0.85'}));
+    cg.appendChild(mk('rect',{x:-14,y:-19,width:28,height:11,rx:4,fill:col,opacity:'0.68'}));
+    cg.appendChild(mk('rect',{x:-11,y:-18,width:10,height:9,rx:2,
+      fill:cl('rgba(180,220,255,0.6)','rgba(60,120,200,0.6)')}));
+    cg.appendChild(mk('rect',{x:1,y:-18,width:10,height:9,rx:2,
+      fill:cl('rgba(180,220,255,0.6)','rgba(60,120,200,0.6)')}));
+    cg.appendChild(mk('circle',{cx:-14,cy:6,r:4.5,fill:cl('#444','#222')}));
+    cg.appendChild(mk('circle',{cx:14,cy:6,r:4.5,fill:cl('#444','#222')}));
+    const ez=mk('text',{x:0,y:-11,'text-anchor':'middle','font-size':'9',fill:'#FFE060'});
+    ez.textContent='⚡'; cg.appendChild(ez);
+    return cg;
+  }
+
+  const bikeCol=cl('#5848C8','#7868E0');
+  const carCol =cl('#3E4EC0','#5060D8');
+  // Bikes on forward road path (left to right), staggered
+  [14,15.5,17,18.5,20].forEach((dur,i)=>{
+    transG.appendChild(drive(bike(bikeCol),'pT1',dur,-(i*dur/5).toFixed(2)));
+  });
+  // Bikes on reverse road path
+  [15,17,19].forEach((dur,i)=>{
+    transG.appendChild(drive(bike(bikeCol),'pT2',dur,-(i*dur/3).toFixed(2)));
+  });
+  // Shared EV cars — slower, less frequent
+  [22,26].forEach((dur,i)=>{
+    transG.appendChild(drive(ecar(carCol),'pT1',dur,-(i*dur/2).toFixed(2)));
+  });
+  [24].forEach((dur,i)=>{
+    transG.appendChild(drive(ecar(carCol),'pT2',dur,-(i*dur/1).toFixed(2)));
+  });
+
+  // Transport label — clickable target for transport info
+  const tlbG=g(null,'hot'); tlbG.dataset.info='transport';
+  tlbG.appendChild(mk('rect',{x:C_cx-185,y:GY+42,width:370,height:18,rx:9,
+    fill:cl('rgba(60,38,160,0.10)','rgba(88,64,192,0.14)'),
+    stroke:cl('rgba(60,38,160,0.32)','rgba(88,64,192,0.38)'),'stroke-width':'1'}));
+  const tlb=mk('text',{x:C_cx,y:GY+55,'text-anchor':'middle',
+    'font-family':'Syncopate,sans-serif','font-size':'8','letter-spacing':'0.14em',
+    fill:cl('rgba(60,38,160,0.82)','rgba(130,100,220,0.88)')});
+  tlb.textContent='ACTIVE TRANSPORT CORRIDOR — CYCLING PRIORITY';
+  tlbG.appendChild(tlb);
+  transG.appendChild(tlbG);
+  SV.appendChild(transG);
+
+  /* PEOPLE — animated walkers + workers at the domes */
+  const pplG=g('layer-people');
+  if(!L.people)pplG.setAttribute('opacity','0');
+  const pplCol=cl('#8A2068','#E060A0');
+  const pplCol2=cl('#B04080','#FF80C0');
+
+  // Walking figure (stick figure drawn at origin)
+  function person(col){
+    const pg=g();
+    pg.appendChild(mk('circle',{cx:0,cy:-14,r:2.6,fill:col}));
+    pg.appendChild(mk('line',{x1:0,y1:-11,x2:0,y2:-3,stroke:col,'stroke-width':'1.7'}));
+    // Legs (static — stride suggestion)
+    pg.appendChild(mk('line',{x1:0,y1:-3,x2:-2.5,y2:3,stroke:col,'stroke-width':'1.5'}));
+    pg.appendChild(mk('line',{x1:0,y1:-3,x2:2.5,y2:3,stroke:col,'stroke-width':'1.5'}));
+    // Arms
+    pg.appendChild(mk('line',{x1:0,y1:-9,x2:-2.5,y2:-5,stroke:col,'stroke-width':'1.3'}));
+    pg.appendChild(mk('line',{x1:0,y1:-9,x2:2.5,y2:-5,stroke:col,'stroke-width':'1.3'}));
+    // Subtle bobbing
+    const bob=mk('animateTransform',{attributeName:'transform',type:'translate',
+      values:'0,0; 0,-1.4; 0,0',dur:'0.55s',repeatCount:'indefinite',additive:'sum'});
+    pg.appendChild(bob);
+    return pg;
+  }
+
+  // Walkers along pPe (forward) — staggered start, varied speeds
+  [28,30,32,34,36,38].forEach((dur,i)=>{
+    pplG.appendChild(drive(person(pplCol),'pPe',dur,-(i*dur/6).toFixed(2)));
+  });
+  // Walkers along pPe2 (reverse)
+  [30,33,36,39].forEach((dur,i)=>{
+    pplG.appendChild(drive(person(pplCol2),'pPe2',dur,-(i*dur/4).toFixed(2)));
+  });
+
+  // Stationary "working" figures at each dome site (tending gardens etc.)
+  function stationaryPerson(x,y,col){
+    const pg=person(col);
+    pg.setAttribute('transform',`translate(${x},${y})`);
+    return pg;
+  }
+  // Regional orchard workers
+  [R_cx-70,R_cx-20,R_cx+40,R_cx+80].forEach(x=>pplG.appendChild(stationaryPerson(x,GY-2,pplCol)));
+  // Community plaza
+  [C_cx-40,C_cx-10,C_cx+20,C_cx+50].forEach(x=>pplG.appendChild(stationaryPerson(x,GY-2,pplCol2)));
+  // Family dome residents
+  [FA_cx,FB_cx,FC_cx].forEach(x=>{
+    pplG.appendChild(stationaryPerson(x-14,GY-2,pplCol));
+    pplG.appendChild(stationaryPerson(x+14,GY-2,pplCol2));
+  });
+
+  // People label — clickable target for people info
+  const plbG=g(null,'hot'); plbG.dataset.info='people';
+  plbG.appendChild(mk('rect',{x:C_cx-165,y:GY+68,width:330,height:18,rx:9,
+    fill:cl('rgba(138,32,104,0.10)','rgba(224,96,160,0.14)'),
+    stroke:cl('rgba(138,32,104,0.35)','rgba(224,96,160,0.42)'),'stroke-width':'1'}));
+  const plb=mk('text',{x:C_cx,y:GY+81,'text-anchor':'middle',
+    'font-family':'Syncopate,sans-serif','font-size':'8','letter-spacing':'0.14em',
+    fill:cl('rgba(138,32,104,0.85)','rgba(244,130,190,0.92)')});
+  plb.textContent='PEOPLE — DAILY LIFE IN THE COMMONS';
+  plbG.appendChild(plb);
+  pplG.appendChild(plbG);
+
+  SV.appendChild(pplG);
+
+  /* ── ATMOSPHERIC HAZE (subtle depth over harbour) ────────── */
+  const hazeEl=mk('rect',{x:0,y:395,width:VW,height:50,
+    fill:cl('rgba(200,220,240,0.10)','rgba(10,20,40,0.14)')});
+  SV.appendChild(hazeEl);
+
+  /* ── SCENE TITLE WATERMARK ──────────────────────────────── */
+  const scTitle=mk('text',{x:700,y:38,'text-anchor':'middle',
+    'font-family':'Syncopate,sans-serif','font-size':'11','font-weight':'400',
+    'letter-spacing':'0.24em',fill:cl('rgba(42,26,8,0.40)','rgba(0,215,195,0.32)')});
+  scTitle.textContent='EPHEMERALIZATION — A DRONE VIEW OF NESTED LIVING';
+  SV.appendChild(scTitle);
+
+  /* ── SETUP INTERACTIVITY ────────────────────────────────── */
+  bindHot();
+}
+
+/* ── INTERACTIVITY — click to open panel, no hover popups ───── */
+function bindHot(){
+  document.querySelectorAll('.hot').forEach(el=>{
+    const key=el.dataset.info;
+    if(!key)return;
+    el.addEventListener('click',e=>{
+      e.stopPropagation();
+      openPanel(key);
+    });
+  });
+  // Click on empty SVG space closes the panel
+  SV.addEventListener('click',()=>{
+    if(document.getElementById('panel').classList.contains('open')) closePanel();
+  });
+}
+
+function openPanel(key){
+  const d=INFO[key]; if(!d)return;
+  document.getElementById('pico').textContent=d.icon;
+  document.getElementById('ptit').textContent=d.title;
+  document.getElementById('psub').textContent=d.sub;
+  document.getElementById('pbod').innerHTML=d.body;
+  document.getElementById('pmets').innerHTML=
+    d.metrics.map(m=>`<div class="pm"><span class="pml">${m.l}</span><span class="pmv">${m.v}</span></div>`).join('');
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('scalepanel').classList.add('hidden');
+}
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('scalepanel').classList.remove('hidden');
+}
+
+/* ── CONTROLS ───────────────────────────────────────────────── */
+// Theme toggle
+document.getElementById('tbn').addEventListener('click',()=>{
+  isDark=!isDark;
+  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
+  document.getElementById('tbn').textContent=isDark?'☀️':'🌙';
+  build();
+  applyLayers();
+});
+
+// Layer buttons
+document.querySelectorAll('.lb').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const k=btn.dataset.l;
+    L[k]=!L[k];
+    btn.classList.toggle('on');
+    const el=document.getElementById(`layer-${k}`);
+    if(el) el.setAttribute('opacity',L[k]?'1':'0');
+  });
+});
+
+// Panel close
+document.getElementById('pclose').addEventListener('click',closePanel);
+
+// Apply current layer visibility states (after rebuild)
+function applyLayers(){
+  Object.keys(L).forEach(k=>{
+    const el=document.getElementById(`layer-${k}`);
+    if(el) el.setAttribute('opacity',L[k]?'1':'0');
+  });
+}
+
+/* ── INIT ───────────────────────────────────────────────────── */
+build();
+</script>
+</body>
+</html>
